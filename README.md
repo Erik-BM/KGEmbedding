@@ -51,13 +51,7 @@ Tested on Ubuntu 16.04 LTS with NVIDIA GTX 1050 and Ubuntu 18.04 LTS on CPU. All
 
 Install the required packages.
 ```
-python3
-numpy
-tensorflow
-tqdm
-```
-```
-pip3 install numpy tensorflow tqdm
+pip3 install -r requirements.txt
 ```
 Click [here](https://www.tensorflow.org/install/) for TensorFlow install instructions.
 
