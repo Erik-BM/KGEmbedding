@@ -67,7 +67,7 @@ class FalseGenerator:
         for p,c in self.ontology.subject_objects(OWL.disjointWith):
             self.disjoint[p].add(c)
         
-        for p,c in self.ontology.subject_objects(OWL.equivalentClasses):
+        for p,c in self.ontology.subject_objects(OWL.equivalentClass):
             self.disjoint[p] |= self.disjoint[c]
             
     def corrupt_entity(self, p, e, method = 'disjoint'):
