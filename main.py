@@ -92,11 +92,11 @@ def mr(target, sorted_predictions, reverse):
 
 def evaluate(model, filename, E_mapping, R_mapping, reverse = True, train_triples = []):
     
-    head_ignore = defaultdict(list)
-    tail_ignore = defaultdict(list)
+    head_ignore = defaultdict(set)
+    tail_ignore = defaultdict(set)
     for s,p,o in train_triples:
-        tail_ignore[(s,p)].append(o)
-        head_ignore[(p,o)].append(s)
+        tail_ignore[(s,p)].add(o)
+        head_ignore[(p,o)].add(s)
         
     triples = np.squeeze(np.asarray(list(data_iterator(filename, 
                                         E_mapping, 
@@ -112,7 +112,8 @@ def evaluate(model, filename, E_mapping, R_mapping, reverse = True, train_triple
         # tail
         S,P,O = np.repeat(s,N), np.repeat(p,N), np.arange(N)
         X = np.stack([S,P,O],axis=0).T
-        X = np.delete(X,tail_ignore[(s,p)], axis=0)
+        tmp = tail_ignore[(s,p)].discard(o)
+        if tmp: X = np.delete(X,tmp, axis=0)
         pred = model.predict(X)
         sorted_predictions = sort(pred,reverse)
         for k in [1,3,10]:
@@ -125,7 +126,8 @@ def evaluate(model, filename, E_mapping, R_mapping, reverse = True, train_triple
         # head
         S,P,O = np.arange(N), np.repeat(p,N), np.repeat(o,N)
         X = np.stack([S,P,O],axis=0).T
-        X = np.delete(X,head_ignore[(s,p)],axis=0)
+        tmp = head_ignore[(p,o)].discard(s)
+        if tmp: X = np.delete(X,head_ignore[(p,o)]-set([s]),axis=0)
         pred = model.predict(X)
         sorted_predictions = sort(pred,reverse)
         for k in [1,3,10]:
@@ -163,7 +165,7 @@ def main(model, params):
     drop = params['drop']
     dim = params['ed']
     
-    constr_dict = {'maxnorm': MaxNorm(),'unitnorm': UnitNorm(),'nonneg': NonNeg()}
+    constr_dict = {'maxnorm': MaxNorm(1,axis=1),'unitnorm': UnitNorm(axis=1),'nonneg': NonNeg()}
     reg_dict = {'l1': l1(0.01),'l2': l2(0.01),'l1_l2': l1_l2(0.01,0.01)}
     
     train_file = datafolder + "train.txt"
@@ -203,10 +205,6 @@ def main(model, params):
     else: 
         false_train_labels = np.zeros(len(false_train.T))
     
-    #train_data = np.concatenate([false_train.T,true_train.T],axis=0)
-    #train_labels = np.concatenate([false_train_labels.T,true_train_labels.T],axis=0)
-    #train_labels = train_labels * (1 - params['ls']) + params['ls'] / 2
-    
     if params['constraint']:
         const = constr_dict[params['constraint']]
     else:
@@ -233,7 +231,7 @@ def main(model, params):
         m.fit(tmpX, tmpY, epochs=1, shuffle=True, batch_size = batch_size)
         
         try:
-            if (i % eval_passes == 0 and i != 0) or (i == training_passes and eval_passes > 0):
+            if (i % eval_passes == 0 and i != 0) or (i == training_passes-1 and eval_passes > 0):
                 if params['filtered']:
                     tmp = true_train.T
                 else:
