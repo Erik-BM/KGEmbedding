@@ -15,7 +15,7 @@ class TransE(Model):
         
         self.l = Lambda(lambda x:tf.norm(x,axis=1))
         self.reshape = Reshape((-1,))
-        self.bn = BatchNormalization()
+        #self.bn = BatchNormalization(axis=-1)
         self.d = Dropout(dropout)
         
     def call(self, inputs):
@@ -24,7 +24,7 @@ class TransE(Model):
         x = self.d(x)
         x = self.l(x)
         x = Reshape((-1,1))(x)
-        x = self.bn(x)
+        #x = self.bn(x)
         return self.reshape(x)
         
 
@@ -40,17 +40,17 @@ class DistMult(Model):
         self.s = Lambda(lambda x: K.sum(x, axis=-1))
         self.a = Activation('sigmoid')
         self.reshape = Reshape((-1,))
-        self.bn = BatchNormalization()
+        self.bn = BatchNormalization(axis=-1)
     
     def call(self, inputs):
         s,p,o = inputs[:,0],inputs[:,1],inputs[:,2]
         x = [self.d(self.e(s)),self.d(self.r(p)),self.d(self.e(o))]
         x = self.l(x)
         x = self.s(x)
-        x = self.a(x)
         x = Reshape((-1,1))(x)
         x = self.bn(x)
         x = self.reshape(x)
+        x = self.a(x)
         return x
     
 def circular_cross_correlation(x, y):
@@ -76,16 +76,16 @@ class HolE(Model):
         self.l = Lambda(lambda x: HolE_fn(x[0],x[1],x[2]))
         self.a = Activation('sigmoid')
         self.reshape = Reshape((-1,))
-        self.bn = BatchNormalization()
+        self.bn = BatchNormalization(axis=-1)
         
     def call(self, inputs):
         s,p,o = inputs[:,0],inputs[:,1],inputs[:,2]
         x = [self.d(self.e(s)),self.d(self.r(p)),self.d(self.e(o))]
         x = self.l(x)
-        x = self.a(x)
         x = Reshape((-1,1))(x)
         x = self.bn(x)
         x = self.reshape(x)
+        x = self.a(x)
         return x
 
 
@@ -109,7 +109,7 @@ class ComplEx(Model):
         self.l = Lambda(lambda x: ComplEx_fn(x[0],x[1],x[2],x[3],x[4],x[5]))
         self.a = Activation('sigmoid')
         self.reshape = Reshape((-1,))
-        self.bn = BatchNormalization()
+        self.bn = BatchNormalization(axis=-1)
         
     
     def call(self, inputs):
@@ -117,10 +117,10 @@ class ComplEx(Model):
         x = [self.e(s),self.r(p),self.e(o),self.e_complex(s),self.r_complex(p),self.e_complex(o)]
         x = [self.d(a) for a in x]
         x = self.l(x)
-        x = self.a(x)
         x = Reshape((-1,1))(x)
         x = self.bn(x)
         x = self.reshape(x)
+        x = self.a(x)
         return x
     
     
@@ -135,9 +135,9 @@ class ConvE(Model):
         self.reshape = Reshape((width, height, 1))
         self.concat = Concatenate(axis=-2)
         self.d1 = Dropout(dropout)
-        self.bn1 = BatchNormalization()
+        self.bn1 = BatchNormalization(axis=-1)
         self.d2 = Dropout(dropout)
-        self.bn2 = BatchNormalization()
+        self.bn2 = BatchNormalization(axis=-1)
         
         self.conv = Conv2D(32, (3,3), activation='relu')
         self.f = Flatten()

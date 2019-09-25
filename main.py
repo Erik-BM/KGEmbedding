@@ -219,7 +219,7 @@ def main(model, params):
     
     m = model(VOC_SIZE, PRED_SIZE, dim, embeddings_regularizer=const,embeddings_constraint=reg,dropout=params['drop'])
     
-    m.compile(loss='binary_crossentropy', optimizer='adagrad', metrics=['acc'])
+    m.compile(loss=params['loss'], optimizer='adagrad', metrics=['mae'])
     
     for i in range(training_passes):
         if params['false_mode'] != 'fromfile':
@@ -289,6 +289,7 @@ if __name__ == "__main__":
     parser.add_argument('-regularizer', help='Embedding regularizer (l1,l2,l1_l2).', type=str, default=None)
     parser.add_argument('-threshold', type=float, help='stop training if MRR change is less than threshold (use in conjunction with evaluation)', default = 0.0)
     
+    parser.add_argument('-loss', type=str, help='Loss function', default='binary_crossentropy')
     
     parser.add_argument('--store', help='Store embedding', action='store_true')
     parser.add_argument('--filtered', help='Filter results', action='store_true')
@@ -330,6 +331,7 @@ if __name__ == "__main__":
     params['constraint'] = args.constraint
     params['regularizer'] = args.regularizer
     params['ls'] = args.ls
+    params['loss'] = args.loss
     
     params['reverse_labels'] = False
  
