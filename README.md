@@ -80,7 +80,7 @@ for help.
 
 Training HolE over WN18 for 100 epochs with evaluation every 10 epochs:
 ```
-python3 main.py HolE WN18 -t 100 -e 10 saved_models/HolE_WN18
+python3 main.py HolE WN18 -t 100 -e 10
 ```
 
 ## Parameters
