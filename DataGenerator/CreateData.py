@@ -112,7 +112,6 @@ if __name__ == '__main__':
     parser.add_argument('data_relation_mapping', type=str)
     parser.add_argument('ignore', nargs='?', type=str, help='Relations to ignore. Write all relations as string separated by a space.')
     
-    
     args = parser.parse_args()
     params = {}
     params['filename'] = args.filename
