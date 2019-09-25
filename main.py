@@ -190,11 +190,11 @@ def main(model, params):
         true_train_labels = np.ones(len(true_train.T))
     
     if params['false_mode'] == 'fromfile':
-        false_train = np.asarray(list(data_iterator(false_train_file, 
+        false_train = np.squeeze(np.asarray(list(data_iterator(false_train_file, 
                                         E_mapping, 
                                         R_mapping, 
                                         batch_size = -1,
-                                        mode = params['training_mode'])))
+                                        mode = params['training_mode']))))
         
     else:
         s,p,o = true_train

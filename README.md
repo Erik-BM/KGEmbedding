@@ -26,21 +26,22 @@ Below are a selection of the most common models used in KG embedding. More model
 Holographic embeddning use the fact that correlation is not a commutative property to model directional relationships better than models with commutative scoring function.
 The scoring function for a triple (subject, object, predicate) is `E(s,o,p) = f(p^T (K(s,o)))`, where f is an activation function (sigmoid), s, o, p are embedded vectors and `K(s,o) =  ifft(conj(fft(s)) * fft(o))` (`fft` and `ifft` are the fast Fourier transforms).
 
-For each triple T in the training set we create a corrupt triple C which is not in the KG. Then we are left with a minimax problem. We would like to minimize the hinge loss `L(T) = max(E(C)-E(T) + m, 0)`, where `m` is the margin (by default `m = 0.2`).
-By minimizing `L(T)` we force the true triples to score higher than the corrupt ones.
+For each triple T in the training set we create a corrupt triple C which is not in the KG. Then we are left with a minimax problem. 
 
 ### ConvE
 Convolutional embeddings uses a 2D convolution neural network layer to learn embeddings. This approach is very parameter efficient, achieving similar results as other models with only the fraction of the parameters.
-Our implementation deviates from the paper by Dettmers et. al. by using the hinge loss instead of the cross-entropy loss. At initial testing, this seems to lead to faster training.
 
 ### TransE
-TransE uses a simple and intuitive scoring function, namely that the embedded object of a subject-predicate pair should be close to the sum of the subject and predicate embedding. `E(s,o,p) = dist(s + p, o)`. The loss function is `L(T) = max(m + E(T) - E(C), 0)`. Note that the sign before `E(T)` and `E(C)` has changed. This is since TransE scores true triple low while HolE is the opposite.
+TransE uses a simple and intuitive scoring function, namely that the embedded object of a subject-predicate pair should be close to the sum of the subject and predicate embedding. `E(s,o,p) = dist(s + p, o)`.
 
 ### DistMult
-DistMult uses the scoring function `E(s,o,p) = sum_i (s_i * o_i * p_i)` or a triple inner product. This leads to a high score for triples where the elements of `s`, `o`, and `p` are similar (in sign, either same or alternating) and large. We normalize the score with a sigmoid activation function. The loss function is the same as for HolE.
+DistMult uses the scoring function `E(s,o,p) = sum_i (s_i * o_i * p_i)` or a triple inner product. This leads to a high score for triples where the elements of `s`, `o`, and `p` are similar (in sign, either same or alternating) and large. We normalize the score with a sigmoid activation function. 
 
 ### ComplEx
 Basically, ComplEx is the same as DistMult in that it has the same scoring function. However, the embeddings are complex and the scoring function takes the conjugate of `p`. i.e. `E(s,o,p) = sum_i (s_i * o_i * p_i^*) = sum_i[(Re(s_i) * Re(o_i) * Re(p_i)) + (Re(s_i) * Im(o_i) * Im(p_i)) + (Re(s_i) * Im(o_i) * Im(p_i)) - (Im(s_i) * Re(o_i) * Im(p_i))]`. This results in that ComplEx is able to learn symmetric and antisymmetric relations.
+
+By default, binary cross-entropy is used as a loss function. However, all losses defined by [keras](https://keras.io/losses/) can be used.
+
 
 ### Evaluation
 There are (mainly) two methods for evaluating the predictive performance of a model. These are Hits@k and mean reciprocal rank (MRR). Hits@k is true if the true triple are within the k larges scores for all possible objects or subjects. We use the average of testing all subjects and all objects. 
@@ -77,14 +78,11 @@ python3 main.py -h
 ```
 for help.
 
-Then, training HolE over WN18 for 100 epochs with evaluation every 10 epochs:
+Training HolE over WN18 for 100 epochs with evaluation every 10 epochs:
 ```
 python3 main.py HolE WN18 -t 100 -e 10 saved_models/HolE_WN18
 ```
-To test predictive power run
-```
-python3 main.py HolE WN18 -p 1 --filtered saved_models/HolE_WN18 results_file.txt
-```
+
 ## Parameters
 
 List of datasets:
