@@ -7,6 +7,7 @@ Creates false training triples under CWA.
 from random import choice
 from collections import defaultdict
 import numpy as np
+from false_generator import FalseGenerator 
 
 def get_domains(subjects, predicates):
     out = defaultdict(set)
@@ -33,7 +34,7 @@ def inverse_domain(domains, all_entities):
 def get_false_triple(subjects, objects, predicate):
     return (choice(subjects), choice(objects), predicate)
 
-def corrupt_triples(true_subjects, true_predicates, true_objects, check = False, mode = 'random', ontology = None):
+def corrupt_triples(true_subjects, true_predicates, true_objects, check = False, mode = 'random', false_gen = None):
     """
     Create false triples.
     args:
@@ -97,6 +98,14 @@ def corrupt_triples(true_subjects, true_predicates, true_objects, check = False,
         ranges = inverse_domain(ranges, all_entities)
         for p in true_predicates:
             false_triples.append(get_false_triple(list(domains[p]),list(ranges[p]),p))
+    elif mode == 'ontology':
+        if not isinstance(false_gen, FalseGenerator):
+            raise TypeError(mode, 'requires a FalseGenerator object as input.')
+        
+        for s,p,o in zip(true_subjects,true_predicates,true_objects):
+            method = choice(['range','domain','disjoint'])
+            false_triples.append(false_gen.corrupt((s,p,o),method=method))
+        
     else:
         raise NotImplementedError(mode + " not implemented")
         
