@@ -184,6 +184,6 @@ class FalseGenerator:
            
         if not all([s,p,o]):
             warnings.warn('No corrupt entity found: returning random triple')
-            return self.corrupt(None, method=['random'], ignore_literals, ignore_blank_nodes)
+            return self.corrupt(None, ['random'], ignore_literals, ignore_blank_nodes)
         
         return s,p,o
