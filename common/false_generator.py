@@ -20,7 +20,6 @@ from collections import defaultdict
 
 from random import choice
 
-
 class FalseGenerator:
     def __init__(self, tboxfile, aboxfile):
         
