@@ -19,7 +19,6 @@ from rdflib.namespace import RDFS, OWL, RDF
 from collections import defaultdict
 import warnings
 from random import choice
-import os
 
 import subprocess
 
@@ -86,13 +85,8 @@ class FalseGenerator:
         self.ontology = Graph()
         self.ontology.parse(tboxfile)
         
-        print(len(self.ontology))
-        
         if reason: hermit(self.ontology)
         
-        
-        print(len(self.ontology))
-
         self.data = Graph()
         f = aboxfile.split('.')[-1]
         self.data.parse(aboxfile,format=f)
