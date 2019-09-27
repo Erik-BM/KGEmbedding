@@ -7,22 +7,71 @@ version 1
 - RDFS.domain
 - RDFS.range
 - OWL.disjointWith
-- OWL.equivalentClasses
+- OWL.equivalentClass
 
 
 max and min cardinality makes no sense to use. Voiding max will make more true triples false, while min requires removing triples from Abox. 
 
 """
 
-from rdflib import Graph, Literal, BNode
+from rdflib import Graph, Literal, BNode, URIRef
 from rdflib.namespace import RDFS, OWL, RDF
 from collections import defaultdict
 import warnings
-
 from random import choice
+import os
 
+import subprocess
+
+def convert_hermit_output_to_graph(output):
+    g = Graph()
+    
+    for t in output.split('\n'):
+        try:
+            p = t.split('(')[0]
+            so = t.split('(')[1].strip(' <>)')
+            l1 = so.split('> <')
+            l2 = so.split('> >')
+            if len(l1) > len(l2):
+                l = l1
+            else:
+                l = l2
+            
+            if len(l) <= 2:
+                g.add((URIRef(l[0]),OWL[p],URIRef(l[1])))
+            else:
+                if p == 'EquivalentClasses':
+                    p = 'EquivalentClass'
+                if p == 'EquivalentObjectProperties':
+                    p = 'EquivalentObjectProperty'
+                if p == 'EquivalentDataProperties':
+                    p = 'EquivalentDataProperty'
+                for a in l:
+                    for b in l:
+                        a = URIRef(a)
+                        b = URIRef(b)
+                        g.add((a,OWL[p],b))
+        except IndexError:
+            pass
+    
+    return g
+    
+
+def hermit(graph):
+    graph.serialize('tmp1.owl')
+    
+    commands = ['java', '-Xmx2000M', '-cp', 'HermiT.jar', 'org.semanticweb.HermiT.cli.CommandLine', '-c', '-O', '-D', 'tmp1.owl','--ignoreUnsupportedDatatypes']
+    
+    
+    output = subprocess.check_output(' '.join(commands), shell=True)
+    
+    output = output.decode('utf-8')
+    
+    graph += convert_hermit_output_to_graph(output)
+    
+    
 class FalseGenerator:
-    def __init__(self, tboxfile, aboxfile):
+    def __init__(self, tboxfile, aboxfile, reason = False):
         """
         Create inconsitent triples based on an ontology. 
         
@@ -31,17 +80,25 @@ class FalseGenerator:
                 path to TBox file, rdf/owl format
             aboxfile :: string 
                 path to ABox file, any format supported by rdflib
+            reason :: apply the HermiT reasoner to ontology
         """
         
         self.ontology = Graph()
         self.ontology.parse(tboxfile)
+        
+        print(len(self.ontology))
+        
+        if reason: hermit(self.ontology)
+        
+        
+        print(len(self.ontology))
 
         self.data = Graph()
         f = aboxfile.split('.')[-1]
         self.data.parse(aboxfile,format=f)
         
-        self._perform_classification()
         self._same_as_reasoning()
+        self._perform_classification()
         
         self.entities = set(self.data.subjects()) | set(self.data.objects())
     
@@ -70,9 +127,9 @@ class FalseGenerator:
         Performs sameAs reasoning. 
         """
         for s1,s2 in self.data.subject_objects(predicate=OWL.sameAs):
-            for p,o in self.data.predicate_objects(subject=s1)
+            for p,o in self.data.predicate_objects(subject=s1):
                 self.data.add((s2,p,o))
-            for p,o in self.data.predicate_objects(subject=s2)
+            for p,o in self.data.predicate_objects(subject=s2):
                 self.data.add((s1,p,o))
         
     
@@ -202,3 +259,13 @@ class FalseGenerator:
             return self.corrupt(None, ['random'], ignore_literals, ignore_blank_nodes)
         
         return s,p,o
+
+
+def test():
+    g = FalseGenerator('/home/kire/Downloads/dbpedia_2016-10.owl','/home/kire/Downloads/test.ttl', reason=True)
+    for i in range(10):
+        for m in ['domain','range',['disjoint','range','domain'],'random']:
+            ft = g.corrupt(method=m)
+            print(ft)
+
+
