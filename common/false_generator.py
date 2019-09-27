@@ -41,6 +41,7 @@ class FalseGenerator:
         self.data.parse(aboxfile,format=f)
         
         self._perform_classification()
+        self._same_as_reasoning()
         
         self.entities = set(self.data.subjects()) | set(self.data.objects())
     
@@ -49,6 +50,9 @@ class FalseGenerator:
         self._load_disjoint()
     
     def _perform_classification(self):
+        """
+        Performs classification of all instances in data. 
+        """
         l1 = len(self.data)
         
         while True: #crude method, but works
@@ -60,6 +64,17 @@ class FalseGenerator:
             if not l1 < l2:
                 break
             l1 = l2
+    
+    def _same_as_reasoning(self):
+        """
+        Performs sameAs reasoning. 
+        """
+        for s1,s2 in self.data.subject_objects(predicate=OWL.sameAs):
+            for p,o in self.data.predicate_objects(subject=s1)
+                self.data.add((s2,p,o))
+            for p,o in self.data.predicate_objects(subject=s2)
+                self.data.add((s1,p,o))
+        
     
     def _load_false_domains(self):
         self.D = defaultdict(set)
