@@ -254,12 +254,3 @@ class FalseGenerator:
         
         return s,p,o
 
-
-def test():
-    g = FalseGenerator('/home/kire/Downloads/dbpedia_2016-10.owl','/home/kire/Downloads/test.ttl', reason=True)
-    for i in range(10):
-        for m in ['domain','range',['disjoint','range','domain'],'random']:
-            ft = g.corrupt(method=m)
-            print(ft)
-
-
