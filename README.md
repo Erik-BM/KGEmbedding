@@ -112,7 +112,7 @@ for CPU only. Replace `"-1"` to specify which GPU to use. If no environment vari
 
 ## Authors
 
-* **Erik Bryhn Myklebust** - *Initial work* - [Erik-BM](https://gitlab.com/Erik-BM)
+* **Erik Bryhn Myklebust** - *Initial work* - [Erik-BM](https://github.com/Erik-BM)
 
 
 ## Bibliography
